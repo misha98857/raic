@@ -4,15 +4,6 @@ from model.robot import Robot
 from model.rules import Rules
 
 EPS = 1e-5
-# Константы, взятые из документации
-BALL_RADIUS = 2.0
-ROBOT_MAX_RADIUS = 1.05
-MAX_ENTITY_SPEED = 100.0
-ROBOT_MAX_GROUND_SPEED = 30.0
-ROBOT_MAX_JUMP_SPEED = 15.0
-
-JUMP_TIME = 0.2
-MAX_JUMP_HEIGHT = 3.0
 
 
 class Vector2D:
@@ -23,7 +14,7 @@ class Vector2D:
 
     # Нахождение длины вектора
     def len(self):
-        return ((self.x * self.x) + (self.z * self.z))**0.5
+        return ((self.x * self.x) + (self.z * self.z)) ** 0.5
 
     # Операция - для векторов
     def __sub__(self, other):
@@ -39,7 +30,7 @@ class Vector2D:
 
     # Нормализация вектора (приведение длины к 1)
     def normalize(self):
-        return Vector2D(self.x/self.len(), self.z/self.len())
+        return Vector2D(self.x / self.len(), self.z / self.len())
 
 
 class MyStrategy:
@@ -51,7 +42,7 @@ class MyStrategy:
         # чтобы как можно быстрее попасть обратно на землю
         if not me.touch:
             action.target_velocity_x = 0.0
-            action.target_velocity_y = -MAX_ENTITY_SPEED
+            action.target_velocity_y = -rules.MAX_ENTITY_SPEED
             action.target_velocity_z = 0.0
             action.jump_speed = 0.0
             action.use_nitro = True
@@ -65,8 +56,8 @@ class MyStrategy:
         # Если при прыжке произойдет столкновение с мячом, и мы находимся
         # с той же стороны от мяча, что и наши ворота, прыгнем, тем самым
         # ударив по мячу сильнее в сторону противника
-        jump = (dist_to_ball < BALL_RADIUS +
-                ROBOT_MAX_RADIUS and me.z < game.ball.z)
+        jump = (dist_to_ball < rules.BALL_RADIUS +
+                rules.ROBOT_MAX_RADIUS and me.z < game.ball.z)
 
         # Так как роботов несколько, определим нашу роль - защитник, или нападающий
         # Нападающим будем в том случае, если есть дружественный робот,
@@ -88,8 +79,7 @@ class MyStrategy:
                 ball_z = game.ball.z
                 ball_vel_x = game.ball.velocity_x
                 ball_vel_z = game.ball.velocity_z
-                ball_pos = Vector2D(ball_x, ball_z) + \
-                    Vector2D(ball_vel_x, ball_vel_z) * t
+                ball_pos = Vector2D(ball_x, ball_z) + Vector2D(ball_vel_x, ball_vel_z) * t
 
                 # Если мяч не вылетит за пределы арены
                 # (произойдет столкновение со стеной, которое мы не рассматриваем),
@@ -105,14 +95,13 @@ class MyStrategy:
 
                     need_speed = delta_pos.len() / t
                     # Если эта скорость лежит в допустимом отрезке
-                    if 0.5 * ROBOT_MAX_GROUND_SPEED < need_speed \
-                            and need_speed < ROBOT_MAX_GROUND_SPEED:
+                    if 0.5 * rules.ROBOT_MAX_GROUND_SPEED < need_speed < rules.ROBOT_MAX_GROUND_SPEED:
                         # То это и будет наше текущее действие
                         target_velocity = delta_pos.normalize() * need_speed
                         action.target_velocity_x = target_velocity.x
                         action.target_velocity_y = 0.0
                         action.target_velocity_z = target_velocity.z
-                        action.jump_speed = ROBOT_MAX_JUMP_SPEED if jump else 0.0
+                        action.jump_speed = rules.ROBOT_MAX_JUMP_SPEED if jump else 0.0
                         action.use_nitro = False
                         return
 
@@ -131,10 +120,10 @@ class MyStrategy:
                 target_pos.x = x
         # Установка нужных полей для желаемого действия
         target_velocity = Vector2D(
-            target_pos.x - me.x, target_pos.z - me.z) * ROBOT_MAX_GROUND_SPEED
+            target_pos.x - me.x, target_pos.z - me.z) * rules.ROBOT_MAX_GROUND_SPEED
 
         action.target_velocity_x = target_velocity.x
         action.target_velocity_y = 0.0
         action.target_velocity_z = target_velocity.z
-        action.jump_speed = ROBOT_MAX_JUMP_SPEED if jump else 0.0
+        action.jump_speed = rules.ROBOT_MAX_JUMP_SPEED if jump else 0.0
         action.use_nitro = False
